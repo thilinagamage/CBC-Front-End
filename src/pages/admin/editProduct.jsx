@@ -1,41 +1,56 @@
+
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import mediaUpload from "../../../utils/mediaUpload";
 
-export default function AddProductForm() {
-  const [productId, setProductId] = useState("");
-  const [productName, setProductName] = useState("");
-  const [productAltName, setProductAltName] = useState("");
-  const [productDescription, setProductDescription] = useState("");
-  const [stock, setStock] = useState("");
-  const [labeledPrice, setLabeledPrice] = useState("");
-  const [price, setPrice] = useState("");
-  const [file, setFile] = useState(null);	
-  const [featuredImagePreview, setFeaturedImagePreview] = useState(null);
-  const [galleryImages, setGalleryImages] = useState([]);
+export default function EdtProductForm() {
+  const locationData = useLocation(); 
   const navigate = useNavigate();
 
-  const handleGalleryChange = (e) => {
-    const files = Array.from(e.target.files);
-    const totalFiles = galleryImages.length + files.length;
+  if(locationData.state == null){
+    toast.error("Please select product to edit.");
+    //window.location.href = "/dashboard/products";
+    navigate('/dashboard/products');
+  }
+  const [productId, setProductId] = useState(locationData.state.productId);
+  const [productName, setProductName] = useState(locationData.state.name);
+  const [productAltName, setProductAltName] = useState(locationData.state.altNames.join(","));
+  const [productDescription, setProductDescription] = useState(locationData.state.description);
+  const [stock, setStock] = useState(locationData.state.stock);
+  const [labeledPrice, setLabeledPrice] = useState(locationData.state.labeledPrice);
+  const [price, setPrice] = useState(locationData.state.price);
+  const [file, setFile] = useState(null);	
+const [featuredImagePreview, setFeaturedImagePreview] = useState(
+  Array.isArray(locationData.state.images) ? locationData.state.images[0] : null
+);
+const [galleryImages, setGalleryImages] = useState(
+  locationData.state.galleryimages?.map((url) => ({ file: null, preview: url })) || []
+);
 
-    if (totalFiles > 5) {
-      alert("You can upload a maximum of 5 images.");
-      return;
-    }
 
-    const imagePreviews = files.map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
+ 
 
-    setGalleryImages([...galleryImages, ...imagePreviews]);
-  };
+const handleGalleryChange = (e) => {
+  const files = Array.from(e.target.files);
+  const totalFiles = galleryImages.length + files.length;
+
+  if (totalFiles > 5) {
+    alert("You can upload a maximum of 5 images.");
+    return;
+  }
+
+  const imagePreviews = files.map((file) => ({
+    file,
+    preview: URL.createObjectURL(file),
+  }));
+
+  setGalleryImages((prev) => [...prev, ...imagePreviews]);
+};
 
 
-  
+
 
   async function handleSubmit() {
     
@@ -47,13 +62,23 @@ export default function AddProductForm() {
 
   try {
     // Upload featured image
-    const featuredImageUrl = file ? await mediaUpload(file) : null;
+const featuredImageUrl = file
+  ? await mediaUpload(file)
+  : featuredImagePreview; // use existing image if not changed
+
+
 
     // Upload gallery images
-    const galleryUrls = await Promise.all(
-      galleryImages.map(({ file }) => mediaUpload(file))
-      
-    );
+   const galleryUrls = await Promise.all(
+  galleryImages.map(async ({ file, preview }) => {
+    if (file) {
+      return await mediaUpload(file); // new file
+    } else {
+      return preview; // already uploaded image
+    }
+  })
+);
+
 
     const productAltNamesInArray = productAltName.split(",");
 
@@ -69,29 +94,38 @@ export default function AddProductForm() {
       galleryimages: galleryUrls,
     };
 console.log(product)
-    await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/product/`, product, {
+    await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/product/${productId}`, product, {
       headers: { Authorization: "Bearer " + token },
     });
 
-    toast.success("Product added successfully");
+    toast.success("Product updated successfully");
     navigate("/dashboard/products");
   } catch (error) {
     console.error("Submit error:", error);
-    toast.error("Failed to add product");
+    toast.error("Failed to update product");
   }
   }
+
+  
+    useEffect(() => {
+    return () => {
+      if (featuredImagePreview && typeof featuredImagePreview === 'string') {
+        URL.revokeObjectURL(featuredImagePreview);
+      }
+    };
+  }, [featuredImagePreview]);
 
   return (
     <div>
       <div className="mb-5">
-        <h3 className="text-2xl font-semibold">Add Product</h3>
+        <h3 className="text-2xl font-semibold">Edit Prodconsuct</h3>
       </div>
       <div className="flex flex-raw gap-4">
         <div className="bg-white p-5 rounded-2xl w-[60%]">
           <h2 className="text-2xl mb-5">Product Information</h2>
 
           <label htmlFor="">Product ID</label>
-          <input
+          <input disabled
             id="product-id"
             name="product-id"
             value={productId}
@@ -100,7 +134,7 @@ console.log(product)
             }}
             type="text"
             placeholder="Product ID"
-            className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 
+            className="block cursor-not-allowed w-full rounded-md bg-blue-50 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 
                 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 mb-5"
           />
 
@@ -227,9 +261,19 @@ console.log(product)
                                     </p>
                                   </div>
                                 )}
-                                <input id="featured-image-upload" type="file"  accept="image/*" className="hidden" onChange={(e) => {  const file = e.target.files[0];setFile(file);
-                                    setFeaturedImagePreview(URL.createObjectURL(file));
-                                  }}/>
+                               <input
+                                  type="file"
+                                  id="featured-image-upload"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const selectedFile = e.target.files[0];
+                                    if (selectedFile) {
+                                      setFile(selectedFile);
+                                      setFeaturedImagePreview(URL.createObjectURL(selectedFile));
+                                    }
+                                  }}
+                                  className="hidden"
+                                />
                           </label>
                         </div>
                       </div>                  
@@ -258,7 +302,7 @@ console.log(product)
         >
           ✕
         </button>
-      </div>
+ </div>
     ))}
 
     {/* Upload New Images */}
@@ -289,7 +333,7 @@ console.log(product)
           className="bg-blue-700 p-3 rounded-lg  text-sm
                text-white hover:bg-blue-600 transition duration-150 cursor-pointer gap"
         >
-          Save Product
+          Update Product
         </Link>
         <Link
           to=""

@@ -1,21 +1,19 @@
 import { useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate()
-
+    
 
 
     function handleLogin(){
-         
-        console.log(email, password)
-        console.log('login')
-
-            axios.post(import.meta.env.VITE_BACKEND_URL + '/api/user/login', {
+         setLoading(true)
+         axios.post(import.meta.env.VITE_BACKEND_URL + '/api/user/login', {
         email: email,
         password: password
     }).then(
@@ -30,13 +28,16 @@ export default function LoginPage() {
             }else{
                 navigate('/')
             }
+            setLoading(false)
         }
     ).catch(
         (error) => {
             console.log("Login failed", error.response.data);
             toast.error(error.response.data.message || "Login Faild")
+            setLoading(false)
         }
     )
+
     }
     return (
         <div className='w-full bg-blue-100 h-screen flex'>
@@ -47,8 +48,10 @@ export default function LoginPage() {
                     <h4 className='mb-2 text-3xl font-bold'>Sign In</h4>
                     <p className='mb-10 text-md'>Welcome back ! Please enter your details</p>
                     <div className='flex flex-col'>
-                        <input onChange={(e)=>setEmail(e.target.value)} type="email" className=' h-10 p-2  bg-neutral-50 radius-12 mb-5' placeholder='Email' />
-                        <input onChange={(e) => setPassword(e.target.value)} type="password" className=' p-2 h-10 mb-5 radius-12' placeholder='Password' />
+                        <input onChange={(e)=>setEmail(e.target.value)} type="email" className='rounded h-10 p-2 outline-1 -outline-offset-1 outline-blue-600 
+                        focus:outline-2 focus:-outline-offset-2 focus:outline-blue-800  bg-neutral-50 radius-12 mb-5' placeholder='Email' />
+                        <input onChange={(e) => setPassword(e.target.value)} type="password" className='rounded h-10 p-2 outline-1 -outline-offset-1 outline-blue-600 
+                        focus:outline-2 focus:-outline-offset-2 focus:outline-blue-800  bg-neutral-50 radius-12 mb-5' placeholder='Password' />
                         <div className='flex justify-between'>
                             <div className='flex '>
                                 <input type="checkbox" className=' mr-2' name="" id="" />
@@ -57,7 +60,13 @@ export default function LoginPage() {
                             <p>Forgot Password?</p>
 
                         </div>
-                        <button type="submit" onClick={handleLogin} className='bg-blue-500 text-md text-white px-2 py-3 w-full mt-12 rounded'> Sign In</button>
+                        <button type="submit" onClick={handleLogin} className='bg-blue-500 text-md text-white px-2 py-3 w-full mt-12 rounded'> 
+                            {
+                                loading?"Loading...":"Sign In"
+                            }
+                        </button>
+                        <p className='mt-2'>Don't have an account? &nbsp; <span className='text-blue-700 font-semibold cursor-pointer'> 
+                            <Link to={'/register'}>Sign Up</Link></span></p>
 
                     </div>
                 </div>

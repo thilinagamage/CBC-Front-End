@@ -6,10 +6,15 @@ import { HiOutlineUsers } from "react-icons/hi2";
 import { HiOutlineBuildingStorefront } from "react-icons/hi2";
 import { HiOutlineCalculator } from "react-icons/hi";
 import AddProductForm from './admin/addProductForm';
+import AddNewButton from '../components/AddNewButton';
+import EdtProductForm from './admin/editProduct';
 
 export default function Dashboard() {
   return (
-    <div className='h-screen flex flex-col bg-red-400'>
+    <div className='h-screen flex flex-col'>
+          <div className="absolute bottom-30 right-32">
+            <AddNewButton/>
+          </div>
       <div className='bg-white p-4 flex items-center justify-between'>
          <div className='bg-[url(/Hackstelligence.png)] bg-cover bg-center h-[45px] w-[145px] '></div>
          <div className='bg-[url(/logo.png)] bg-cover bg-center h-[45px] w-[145px] '></div>
@@ -33,20 +38,22 @@ export default function Dashboard() {
         </div>
 
       <div className="h-full flex-1 flex justify-start pr-10">
-        <div className="bg-gray-100 w-full max-w-[calc(100%-5px)] rounded-lg p-10">
+        <div className="bg-gray-100 w-full max-w-[calc(100%-5px)] rounded-lg px-10 py-5">
           <Routes>
             <Route path="dashboard" element={<h1>Dashboard</h1>} />
             <Route path="users" element={<h1>Users</h1>} />
             <Route path="products" element={<AdminProductsPage />} />
             <Route path="addProduct" element= {<AddProductForm/>}/>
+            <Route path="editProduct" element= {<EdtProductForm/>}/>
             <Route path="orders" element={<h1>Orders</h1>} />
+            
           </Routes>
         </div>
       </div>
       </div>
-              <div className='bg-white p-4'>footer
+        <div className='bg-white p-2'>footer
 
-      </div>
+        </div>
     </div>
   );
 }
