@@ -2,13 +2,43 @@ import { useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
+import { FcGoogle } from 'react-icons/fc';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate()
-    
+    const loginWithGoogle = useGoogleLogin(
+       {
+        onSuccess: (res) => {
+            setLoading(true)
+            axios.post(import.meta.env.VITE_BACKEND_URL + '/api/user/google', {
+              accessToken : res.access_token
+            }).then(
+                (response)=>{
+                    console.log("Login successful", response.data);
+            toast.success("Login successful")
+            localStorage.setItem('token', response.data.token)
+
+            const user = response.data.user
+            if(user.role === 'admin'){
+                navigate('/dashboard/')
+            }else{
+                navigate('/')
+            }
+            setLoading(false)
+                }
+            )
+            
+        },
+        
+        onError: (error) => {
+            console.log('Login Failed:', error);
+        },
+       }
+    )
 
 
     function handleLogin(){
@@ -64,6 +94,16 @@ export default function LoginPage() {
                             {
                                 loading?"Loading...":"Sign In"
                             }
+                        </button>
+
+                        <button onClick={() => loginWithGoogle()} className='bg-white border border-black justify-center  text-black flex px-2 py-3 mt-2 rounded'>
+                           
+                            <FcGoogle className='text-2xl '/> 
+                            <span className='text-md  px-2'>
+                             {
+                                loading?"Loading...":"Login with Google"
+                             }
+                            </span>
                         </button>
                         <p className='mt-2'>Don't have an account? &nbsp; <span className='text-blue-700 font-semibold cursor-pointer'> 
                             <Link to={'/register'}>Sign Up</Link></span></p>

@@ -93,6 +93,7 @@ export default function AdminProductsPage(){
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                       {currentItems.map((product, index) => (
+                        console.log("product datails:",product),
                         <tr key={product.id} className="hover:bg-gray-50 transition duration-150">
                           <td className="px-6 py-4 font-medium text-gray-900">{indexOfFirstItem + index + 1}</td>
                           <td className="px-6 py-4">{product.productId}</td>

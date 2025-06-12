@@ -8,6 +8,7 @@ import { HiOutlineCalculator } from "react-icons/hi";
 import AddProductForm from './admin/addProductForm';
 import AddNewButton from '../components/AddNewButton';
 import EdtProductForm from './admin/editProduct';
+import AdminOrders from './admin/adminOrders';
 
 export default function Dashboard() {
   return (
@@ -45,7 +46,7 @@ export default function Dashboard() {
             <Route path="products" element={<AdminProductsPage />} />
             <Route path="addProduct" element= {<AddProductForm/>}/>
             <Route path="editProduct" element= {<EdtProductForm/>}/>
-            <Route path="orders" element={<h1>Orders</h1>} />
+            <Route path="orders" element={<AdminOrders/>} />
             
           </Routes>
         </div>
